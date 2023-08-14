@@ -1,4 +1,4 @@
-import { defaultModel } from "$lib/server/models";
+import { fallbackModel } from "$lib/server/models";
 import { modelEndpoint } from "./modelEndpoint";
 import { textGeneration } from "@huggingface/inference";
 import { trimSuffix } from "$lib/utils/trimSuffix";
@@ -16,12 +16,12 @@ export async function generateFromDefaultEndpoint(
 	parameters?: Partial<Parameters>
 ) {
 	const newParameters = {
-		...defaultModel.parameters,
+		...fallbackModel.parameters,
 		...parameters,
 		return_full_text: false,
 	};
 
-	const endpoint = modelEndpoint(defaultModel);
+	const endpoint = modelEndpoint(fallbackModel);
 	let { generated_text } = await textGeneration(
 		{
 			model: endpoint.url,

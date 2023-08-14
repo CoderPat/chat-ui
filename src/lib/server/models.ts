@@ -1,4 +1,5 @@
 import { HF_ACCESS_TOKEN, MODELS, OLD_MODELS } from "$env/static/private";
+import { defaults } from "autoprefixer";
 import { z } from "zod";
 
 const validateModelSchema = z.array(
@@ -58,6 +59,7 @@ const DEFAULTS = {
   userMessageToken: "<|prompter|>",
   assistantMessageToken: "<|assistant|>",
   messageEndToken: "</s>",
+  preprompt: "Below are a series of dialogues between various people and an AI assistant. The AI tries to be helpful, polite, honest, sophisticated, emotionally aware, and humble-but-knowledgeable. The assistant is happy to help with almost anything, and will do its best to understand exactly what is needed. It also tries to avoid giving false or misleading information, and it caveats when it isn't entirely sure about the right answer. That said, the assistant is practical and really does its best, and doesn't let caution get too much in the way of being useful.\n-----\n",
   promptExamples: [
     {
       title: "Write an email from bullet list",
@@ -76,15 +78,25 @@ const DEFAULTS = {
       repetition_penalty: 1.2,
       top_k: 50,
       truncate: 1000,
-      max_new_tokens: 1024
+      max_new_tokens: 1024,
+      do_sample: true,
     }
 };
+
+// make a function that overwrite defaults for some known models
+// TODO: this shouldn't be here, but for now this works
+const getDefaults = (model_id: string) => {
+  let defaults = structuredClone(DEFAULTS)
+  // for now, defaults are hardcoded, but we should allow someway
+  // to overwrite them in the future, probably through the Central?
+  return defaults
+}
+
 
 export const fetchModels = async (): Promise<BackendModel[]> => {
   const response = await fetch("http://localhost:8765/list_models");
   const modelsList = await response.json();
 
-  console.log(modelsList);
 
   	// replace url (just ip:port) with endpoint based on /generate_stream
 	// replacing the key `url with `endpoint`
@@ -94,7 +106,7 @@ export const fetchModels = async (): Promise<BackendModel[]> => {
       owner: m.owner,
       displayName: m.name,
       is_quantized: m.is_quantized,
-	    ...DEFAULTS,
+	    ...getDefaults(m.name),
       endpoints: [ { url: 'http://' + m.address + '/generate_stream', weight: 1 } ],
   }));
 

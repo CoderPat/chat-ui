@@ -4,7 +4,7 @@ import { collections } from "$lib/server/database";
 import { updateUser } from "./updateUser";
 import { ObjectId } from "mongodb";
 import { DEFAULT_SETTINGS } from "$lib/types/Settings";
-import { defaultModel } from "$lib/server/models";
+import { fallbackModel } from "$lib/server/models";
 
 const userData = {
 	preferred_username: "new-username",
@@ -44,7 +44,7 @@ const insertRandomConversations = async (count: number) => {
 			_id: new ObjectId(),
 			title: "random title",
 			messages: [],
-			model: defaultModel.id,
+			model: fallbackModel.id,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 			sessionId: locals.sessionId,

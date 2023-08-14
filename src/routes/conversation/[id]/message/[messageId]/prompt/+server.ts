@@ -1,7 +1,7 @@
 import { buildPrompt } from "$lib/buildPrompt";
 import { authCondition } from "$lib/server/auth";
 import { collections } from "$lib/server/database";
-import { models } from "$lib/server/models";
+import { fetchModels } from "$lib/server/models";
 import { error } from "@sveltejs/kit";
 import { ObjectId } from "mongodb";
 
@@ -24,6 +24,8 @@ export async function GET({ params, locals }) {
 	if (messageIndex === -1) {
 		throw error(404, "Message not found");
 	}
+
+	const models = await fetchModels();
 
 	const model = models.find((m) => m.id === conv.model);
 

@@ -1,6 +1,6 @@
 import { buildPrompt } from "$lib/buildPrompt";
 import { collections } from "$lib/server/database";
-import { models } from "$lib/server/models";
+import { fetchModels } from "$lib/server/models";
 import { error } from "@sveltejs/kit";
 
 export async function GET({ params }) {
@@ -20,6 +20,7 @@ export async function GET({ params }) {
 		throw error(404, "Message not found");
 	}
 
+	const models = await fetchModels();
 	const model = models.find((m) => m.id === conv.model);
 
 	if (!model) {
