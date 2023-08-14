@@ -62,7 +62,9 @@
 							{#if model.owner}
 								<span class="text-xs text-[#9FA8B5]">Owner: <span class="font-semibold">{model.owner}</span> </span>
 							{/if}
-
+							{#if model.is_quantized}
+								<span class="text-xs bg-blue-500 text-white px-1 py-0.5 rounded">Quantized</span>
+							{/if}
 						</span>
 						<CarbonCheckmark
 							class="-mr-1 -mt-1 ml-auto shrink-0 text-xl {model.id === selectedModelId

@@ -63,8 +63,15 @@
 			<div class="flex p-3">
 				<div>
 					<div class="text-sm text-gray-600 dark:text-gray-400">Current Model</div>
-					<div class="font-semibold">{currentModel.displayName}</div>
-					<div class="text-sm"> Owner: <span class="font-semibold"> {currentModel.owner} </span></div>
+					<div class="font-semibold">
+						{currentModel.displayName}
+						{#if currentModel.is_quantized}
+							<span class="bg-blue-500 text-white px-1 py-0.5 rounded">Quantized</span>
+						{/if}
+					</div>
+					<div class="text-sm"> 
+						Owner: <span class="font-semibold"> {currentModel.owner} </span>
+					</div>
 				</div>
 				{#if models.length > 1}
 					<button

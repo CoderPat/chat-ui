@@ -8,7 +8,8 @@ const validateModelSchema = z.array(
 		/** Used to link to the model page, and for inference */
 		name: z.string().min(1),
 		displayName: z.string().min(1).optional(),
-    	owner: z.string().min(1).optional(),
+    owner: z.string().min(1).optional(),
+    is_quantized: z.boolean().optional().default(false),
 		description: z.string().min(1).optional(),
 		websiteUrl: z.string().url().optional(),
 		modelUrl: z.string().url().optional(),
@@ -57,6 +58,18 @@ const DEFAULTS = {
   userMessageToken: "<|prompter|>",
   assistantMessageToken: "<|assistant|>",
   messageEndToken: "</s>",
+  promptExamples: [
+    {
+      title: "Write an email from bullet list",
+      prompt: "As a restaurant owner, write a professional email to the supplier to get these products every week: \n\n- Wine (x10)\n- Eggs (x24)\n- Bread (x12)"
+    }, {
+      title: "Code a snake game",
+      prompt: "Code a basic snake game in python, give explanations for each step."
+    }, {
+      title: "Assist in a task",
+      prompt: "How do I make a delicious lemon cheesecake?"
+    }
+  ],
   parameters: {
       temperature: 0.9,
       top_p: 0.95,
@@ -80,20 +93,9 @@ export const fetchModels = async (): Promise<BackendModel[]> => {
       name: m.name,
       owner: m.owner,
       displayName: m.name,
-	  ...DEFAULTS,
+      is_quantized: m.is_quantized,
+	    ...DEFAULTS,
       endpoints: [ { url: 'http://' + m.address + '/generate_stream', weight: 1 } ],
-    promptExamples: [
-      {
-        title: "Write an email from bullet list",
-        prompt: "As a restaurant owner, write a professional email to the supplier to get these products every week: \n\n- Wine (x10)\n- Eggs (x24)\n- Bread (x12)"
-      }, {
-        title: "Code a snake game",
-        prompt: "Code a basic snake game in python, give explanations for each step."
-      }, {
-        title: "Assist in a task",
-        prompt: "How do I make a delicious lemon cheesecake?"
-      }
-    ],
   }));
 
   const models = validateModelSchema.parse(modelsListProcessed);

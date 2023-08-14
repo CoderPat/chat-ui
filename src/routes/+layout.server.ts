@@ -14,7 +14,6 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 
 	depends(UrlDependency.ConversationList);
 
-	console.log("urlModel", urlModel);
 	let models = await fetchModels();
 	if (urlModel) {
 		const isValidModel = validateModel(models).safeParse(urlModel).success;
@@ -29,19 +28,25 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 
 		throw redirect(302, url.pathname);
 	}
-	console.log("models", models);
 
 	const settings = await collections.settings.findOne(authCondition(locals));
 
-	console.log("settigns", settings);
 
-	// if active model is fallback and list has elements, set it to first element
-	if (settings && settings.activeModel === fallbackModel.id && models.length > 0) {
-		settings.activeModel = models[0].id;
+	// if we were able to get models, and the settings is not set / set to the
+	// fallback model, set it to the first model in the list
+	if (models.length > 0 && (!settings || settings.activeModel === fallbackModel.id)) {
 		await collections.settings.updateOne(authCondition(locals), {
 			$set: { activeModel: models[0].id },
 		});
 	}
+
+	// if active model is fallback and list has elements, set it to first element
+	// if (settings && settings.activeModel === fallbackModel.id && models.length > 0) {
+	// 	settings.activeModel = models[0].id;
+	// 	await collections.settings.updateOne(authCondition(locals), {
+	// 		$set: { activeModel: models[0].id },
+	// 	});
+	// }
 	// If the active model in settings is not valid, set it to the default model. This can happen if model was disabled.
 	// if (settings && !validateModel(models).safeParse(settings?.activeModel).success) {
 	// 	settings.activeModel = defaultModel.id;
@@ -84,6 +89,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 			datasetUrl: model.datasetUrl,
 			displayName: model.displayName,
 			owner: model.owner,
+			is_quantized: model.is_quantized,
 			description: model.description,
 			promptExamples: model.promptExamples,
 			parameters: model.parameters,
