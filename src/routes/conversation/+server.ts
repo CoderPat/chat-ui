@@ -5,7 +5,7 @@ import { error, redirect } from "@sveltejs/kit";
 import { base } from "$app/paths";
 import { z } from "zod";
 import type { Message } from "$lib/types/Message";
-import { models, validateModel } from "$lib/server/models";
+import { fetchModels, validateModel } from "$lib/server/models";
 import { authCondition } from "$lib/server/auth";
 
 export const POST: RequestHandler = async ({ locals, request }) => {
@@ -14,6 +14,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	let title = "";
 	let messages: Message[] = [];
 
+	let models = await fetchModels();
 	const values = z
 		.object({
 			fromShare: z.string().optional(),

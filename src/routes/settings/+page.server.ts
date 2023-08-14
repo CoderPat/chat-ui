@@ -2,7 +2,7 @@ import { base } from "$app/paths";
 import { collections } from "$lib/server/database";
 import { redirect } from "@sveltejs/kit";
 import { z } from "zod";
-import { models, validateModel } from "$lib/server/models";
+import { fetchModels, validateModel } from "$lib/server/models";
 import { authCondition } from "$lib/server/auth";
 import { DEFAULT_SETTINGS } from "$lib/types/Settings";
 
@@ -10,6 +10,8 @@ export const actions = {
 	default: async function ({ request, locals }) {
 		const formData = await request.formData();
 
+		const models = await fetchModels();
+		
 		const { ethicsModalAccepted, ...settings } = z
 			.object({
 				shareConversationsWithModelAuthors: z

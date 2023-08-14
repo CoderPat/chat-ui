@@ -59,6 +59,10 @@
 							{#if model.description}
 								<span class="text-xs text-[#9FA8B5]">{model.description}</span>
 							{/if}
+							{#if model.owner}
+								<span class="text-xs text-[#9FA8B5]">Owner: <span class="font-semibold">{model.owner}</span> </span>
+							{/if}
+
 						</span>
 						<CarbonCheckmark
 							class="-mr-1 -mt-1 ml-auto shrink-0 text-xl {model.id === selectedModelId

@@ -5,7 +5,7 @@ import { abortedGenerations } from "$lib/server/abortedGenerations";
 import { authCondition, requiresUser } from "$lib/server/auth";
 import { collections } from "$lib/server/database";
 import { modelEndpoint } from "$lib/server/modelEndpoint";
-import { models } from "$lib/server/models";
+import { fetchModels } from "$lib/server/models";
 import { ERROR_MESSAGES } from "$lib/stores/errors.js";
 import type { Message } from "$lib/types/Message";
 import { concatUint8Arrays } from "$lib/utils/concatUint8Arrays";
@@ -51,6 +51,7 @@ export async function POST({ request, fetch, locals, params }) {
 		throw error(429, ERROR_MESSAGES.rateLimited);
 	}
 
+	let models = await fetchModels();
 	const model = models.find((m) => m.id === conv.model);
 
 	if (!model) {

@@ -3,7 +3,7 @@ import type { LayoutServerLoad } from "./$types";
 import { collections } from "$lib/server/database";
 import type { Conversation } from "$lib/types/Conversation";
 import { UrlDependency } from "$lib/types/UrlDependency";
-import { defaultModel, models, oldModels, validateModel } from "$lib/server/models";
+import { fallbackModel, fetchModels, oldModels, validateModel } from "$lib/server/models";
 import { authCondition, requiresUser } from "$lib/server/auth";
 import { DEFAULT_SETTINGS } from "$lib/types/Settings";
 import { SERPAPI_KEY, SERPER_API_KEY, MESSAGES_BEFORE_LOGIN } from "$env/static/private";
@@ -14,6 +14,8 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 
 	depends(UrlDependency.ConversationList);
 
+	console.log("urlModel", urlModel);
+	let models = await fetchModels();
 	if (urlModel) {
 		const isValidModel = validateModel(models).safeParse(urlModel).success;
 
@@ -27,16 +29,26 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 
 		throw redirect(302, url.pathname);
 	}
+	console.log("models", models);
 
 	const settings = await collections.settings.findOne(authCondition(locals));
 
-	// If the active model in settings is not valid, set it to the default model. This can happen if model was disabled.
-	if (settings && !validateModel(models).safeParse(settings?.activeModel).success) {
-		settings.activeModel = defaultModel.id;
+	console.log("settigns", settings);
+
+	// if active model is fallback and list has elements, set it to first element
+	if (settings && settings.activeModel === fallbackModel.id && models.length > 0) {
+		settings.activeModel = models[0].id;
 		await collections.settings.updateOne(authCondition(locals), {
-			$set: { activeModel: defaultModel.id },
+			$set: { activeModel: models[0].id },
 		});
 	}
+	// If the active model in settings is not valid, set it to the default model. This can happen if model was disabled.
+	// if (settings && !validateModel(models).safeParse(settings?.activeModel).success) {
+	// 	settings.activeModel = defaultModel.id;
+	// 	await collections.settings.updateOne(authCondition(locals), {
+	// 		$set: { activeModel: defaultModel.id },
+	// 	});
+	// }
 
 	return {
 		conversations: await conversations
@@ -52,7 +64,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 			.map((conv) => ({
 				id: conv._id.toString(),
 				title: conv.title,
-				model: conv.model ?? defaultModel,
+				model: conv.model ?? fallbackModel,
 			}))
 			.toArray(),
 		settings: {
@@ -60,7 +72,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 				settings?.shareConversationsWithModelAuthors ??
 				DEFAULT_SETTINGS.shareConversationsWithModelAuthors,
 			ethicsModalAcceptedAt: settings?.ethicsModalAcceptedAt ?? null,
-			activeModel: settings?.activeModel ?? DEFAULT_SETTINGS.activeModel,
+			activeModel: settings?.activeModel ?? fallbackModel.id,
 			searchEnabled: !!(SERPAPI_KEY || SERPER_API_KEY),
 		},
 		models: models.map((model) => ({
@@ -71,6 +83,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 			datasetName: model.datasetName,
 			datasetUrl: model.datasetUrl,
 			displayName: model.displayName,
+			owner: model.owner,
 			description: model.description,
 			promptExamples: model.promptExamples,
 			parameters: model.parameters,
