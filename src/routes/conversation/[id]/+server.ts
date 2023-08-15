@@ -5,7 +5,7 @@ import { abortedGenerations } from "$lib/server/abortedGenerations";
 import { authCondition, requiresUser } from "$lib/server/auth";
 import { collections } from "$lib/server/database";
 import { modelEndpoint } from "$lib/server/modelEndpoint";
-import { fetchModels } from "$lib/server/models";
+import { fallbackModel, fetchModels } from "$lib/server/models";
 import { ERROR_MESSAGES } from "$lib/stores/errors.js";
 import type { Message } from "$lib/types/Message";
 import { concatUint8Arrays } from "$lib/utils/concatUint8Arrays";
@@ -52,7 +52,8 @@ export async function POST({ request, fetch, locals, params }) {
 	}
 
 	let models = await fetchModels();
-	const model = models.find((m) => m.id === conv.model);
+	const model_id = conv.model == fallbackModel.id && models.length > 0 ? models[0].id : conv.model;
+	const model = models.find((m) => m.id === model_id);
 
 	if (!model) {
 		throw error(410, "Model not available anymore");

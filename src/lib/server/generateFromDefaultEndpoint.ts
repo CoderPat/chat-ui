@@ -1,4 +1,4 @@
-import { fallbackModel } from "$lib/server/models";
+import { fetchModels, fallbackModel } from "$lib/server/models";
 import { modelEndpoint } from "./modelEndpoint";
 import { textGeneration } from "@huggingface/inference";
 import { trimSuffix } from "$lib/utils/trimSuffix";
@@ -21,7 +21,11 @@ export async function generateFromDefaultEndpoint(
 		return_full_text: false,
 	};
 
-	const endpoint = modelEndpoint(fallbackModel);
+	let models = await fetchModels();
+	// if there are any models, use the first in the list rather than fallback
+	let model = models.length > 0 ? models[0] : fallbackModel;
+	const endpoint = modelEndpoint(model);
+
 	let { generated_text } = await textGeneration(
 		{
 			model: endpoint.url,

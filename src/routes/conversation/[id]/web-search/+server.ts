@@ -1,6 +1,6 @@
 import { authCondition } from "$lib/server/auth";
 import { collections } from "$lib/server/database";
-import { fallbackModel } from "$lib/server/models";
+import { fetchModels, fallbackModel } from "$lib/server/models";
 import { searchWeb } from "$lib/server/websearch/searchWeb";
 import type { Message } from "$lib/types/Message";
 import { error } from "@sveltejs/kit";
@@ -23,7 +23,8 @@ function removeLinks(obj: GenericObject) {
 	return obj;
 }
 export async function GET({ params, locals, url }) {
-	const model = fallbackModel;
+	let models = await fetchModels();
+	let model = models.length > 0 ? models[0] : fallbackModel;
 	const convId = new ObjectId(params.id);
 	const searchId = new ObjectId();
 

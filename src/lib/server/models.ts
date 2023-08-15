@@ -1,4 +1,4 @@
-import { HF_ACCESS_TOKEN, MODELS, OLD_MODELS } from "$env/static/private";
+import { TGI_CENTRAL_ADDRESS } from "$env/static/private";
 import { defaults } from "autoprefixer";
 import { z } from "zod";
 
@@ -94,7 +94,7 @@ const getDefaults = (model_id: string) => {
 
 
 export const fetchModels = async (): Promise<BackendModel[]> => {
-  const response = await fetch("http://localhost:8765/list_models");
+  const response = await fetch("http://"+TGI_CENTRAL_ADDRESS+"/list_models");
   const modelsList = await response.json();
 
 
@@ -107,7 +107,7 @@ export const fetchModels = async (): Promise<BackendModel[]> => {
       displayName: m.name,
       is_quantized: m.is_quantized,
 	    ...getDefaults(m.name),
-      endpoints: [ { url: 'http://' + m.address + '/generate_stream', weight: 1 } ],
+      endpoints: [ { url: 'http://' + m.address, weight: 1 } ],
   }));
 
   const models = validateModelSchema.parse(modelsListProcessed);
@@ -120,22 +120,8 @@ const defaultModels = validateModelSchema.parse([{
   name: "default",
   displayName: "Default",
   description: "Example Description.",
-  userMessageToken: "<|prompter|>",
-  assistantMessageToken: "<|assistant|>",
-  messageEndToken: "</s>",
-    promptExamples: [
-      {
-        title: "Write an email from bullet list",
-        prompt: "As a restaurant owner, write a professional email to the supplier to get these products every week: \n\n- Wine (x10)\n- Eggs (x24)\n- Bread (x12)"
-      }, {
-        title: "Code a snake game",
-        prompt: "Code a basic snake game in python, give explanations for each step."
-      }, {
-        title: "Assist in a task",
-        prompt: "How do I make a delicious lemon cheesecake?"
-      }
-    ],
-  endpoints: [ { url: "http://0.0.0.0:8888/generate_stream", weight: 1 } ],
+  ...getDefaults("default"),
+  endpoints: [ { url: "http://0.0.0.0:8888", weight: 1 } ],
 }]);
 
 export const fallbackModel = defaultModels[0];

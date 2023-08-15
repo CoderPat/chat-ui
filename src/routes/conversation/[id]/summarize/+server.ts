@@ -2,7 +2,7 @@ import { buildPrompt } from "$lib/buildPrompt";
 import { authCondition } from "$lib/server/auth";
 import { collections } from "$lib/server/database";
 import { generateFromDefaultEndpoint } from "$lib/server/generateFromDefaultEndpoint";
-import { fallbackModel } from "$lib/server/models";
+import { fetchModels, fallbackModel } from "$lib/server/models";
 import { error } from "@sveltejs/kit";
 import { ObjectId } from "mongodb";
 
@@ -24,7 +24,10 @@ export async function POST({ params, locals }) {
 		`Please summarize the following message as a single sentence of less than 5 words:\n` +
 		firstMessage?.content;
 
-	const prompt = await buildPrompt([{ from: "user", content: userPrompt }], fallbackModel);
+	let models = await fetchModels();
+	let model = models.length > 0 ? models[0] : fallbackModel;
+
+	const prompt = await buildPrompt([{ from: "user", content: userPrompt }], model);
 	const generated_text = await generateFromDefaultEndpoint(prompt);
 
 	if (generated_text) {
